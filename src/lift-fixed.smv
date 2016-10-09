@@ -247,10 +247,11 @@ G (lift.mode = going_down -> !(lift.mode = going_up))
 LTLSPEC (G ((!lift.moving & lift.position = 0 & (up_button1 | dn_button1) & (up_button2 | dn_button2)) ->  X ((!lift.moving -> lift.position in {0, 3}) U ((!lift.moving & position = 1) & X (!lift.moving -> lift.position in {0, 1, 3}) U (!lift.moving & lift.position = 2) ))))
 
 --9: Whenever the lift is stopped at floor 0 and the down buttons for floors 1 and 2 are active, the lift will stop first at floor 2 and second at floor 1.
-G ((!lift.moving & lift.position = 0 & dn_button1.active & dn_button2.active) ->
-  X ((!lift.moving -> lift.position = 1) U (
-    (!lift.moving & lift.position = 2) & X (
-      (!lift.moving -> lift.position = 2) U (!lift.moving & lift.position = 1)
+G (!lift.moving & lift.position = 0 & dn_button1.active & dn_button2.active -> X (
+    !lift.moving -> lift.position = 1 U (
+      !lift.moving & lift.position = 2 & X (
+        !lift.moving -> lift.position = 2 U (!lift.moving & lift.position = 1)
+      )
     )
   )
 )
