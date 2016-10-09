@@ -194,7 +194,15 @@ MODULE main
 --==========================================================================
 
 -- 0: Multiple requests can be made from within a single lift.
-
+F (floor_button0.active & floor_button1.active)
+F (floor_button0.active & floor_button2.active)
+F (floor_button0.active & floor_button3.active)
+F (floor_button1.active & floor_button2.active)
+F (floor_button1.active & floor_button3.active)
+F (floor_button2.active & floor_button3.active)
+F (floor_button0.active & floor_button1.active & floor_button2.active)
+F (floor_button0.active & floor_button2.active & floor_button3.active)
+F (floor_button1.active & floor_button2.active & floor_button3.active)
 
 -- 1: A request made from inside a lift for any other floor will eventually take the lift to that floor
 
