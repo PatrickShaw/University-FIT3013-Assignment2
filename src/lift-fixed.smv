@@ -193,67 +193,74 @@ MODULE main
 -- assignment specification for the requirements.
 --==========================================================================
 LTLSPEC (
--- 0: Multiple requests can be made from within a single lift.
-F (floor_button0.active & floor_button1.active) &
-F (floor_button0.active & floor_button2.active) &
-F (floor_button0.active & floor_button3.active) &
-F (floor_button1.active & floor_button2.active) &
-F (floor_button1.active & floor_button3.active) &
-F (floor_button2.active & floor_button3.active) &
-F (floor_button0.active & floor_button1.active & floor_button2.active) &
-F (floor_button0.active & floor_button2.active & floor_button3.active) &
-F (floor_button1.active & floor_button2.active & floor_button3.active) &
+  -- 0: Multiple requests can be made from within a single lift.
+  F (floor_button0.active & floor_button1.active) &
+  F (floor_button0.active & floor_button2.active) &
+  F (floor_button0.active & floor_button3.active) &
+  F (floor_button1.active & floor_button2.active) &
+  F (floor_button1.active & floor_button3.active) &
+  F (floor_button2.active & floor_button3.active) &
+  F (floor_button0.active & floor_button1.active & floor_button2.active) &
+  F (floor_button0.active & floor_button2.active & floor_button3.active) &
+  F (floor_button1.active & floor_button2.active & floor_button3.active) &
 
--- 1: A request made from inside a lift for any other floor will eventually take the lift to that floor
-G ((req0) -> F (lift.position = 0 & !lift.moving)) &
-G ((req1) -> F (lift.position = 1 & !lift.moving)) &
-G ((req2) -> F (lift.position = 2 & !lift.moving)) &
-G ((req3) -> F (lift.position = 3 & !lift.moving)) &
-
-
--- 2: A request made from a floor will eventually take the lift to that floor
-G ((up_button0) -> F (lift.position = 0 & !lift.moving)) &
-G ((up_button1 | dn_button1) -> F (lift.position = 1 & !lift.moving)) &
-G ((up_button2 | dn_button2) -> F (lift.position = 2 & !lift.moving)) &
-G ((dn_button3) -> F (lift.position = 3 & !lift.moving)) &
-
--- 3: (When there are no other requests from inside the lifts), only one lift is used to service a given floor request, but not both.
+  -- 1: A request made from inside a lift for any other floor will eventually take the lift to that floor
+  G ((req0) -> F (lift.position = 0 & !lift.moving)) &
+  G ((req1) -> F (lift.position = 1 & !lift.moving)) &
+  G ((req2) -> F (lift.position = 2 & !lift.moving)) &
+  G ((req3) -> F (lift.position = 3 & !lift.moving)) &
 
 
--- Only applicable to the multi-lift part
+  -- 2: A request made from a floor will eventually take the lift to that floor
+  G ((up_button0) -> F (lift.position = 0 & !lift.moving)) &
+  G ((up_button1 | dn_button1) -> F (lift.position = 1 & !lift.moving)) &
+  G ((up_button2 | dn_button2) -> F (lift.position = 2 & !lift.moving)) &
+  G ((dn_button3) -> F (lift.position = 3 & !lift.moving)) &
+
+  -- 3: (When there are no other requests from inside the lifts), only one lift is used to service a given floor request, but not both.
 
 
--- 4: A lift will continue to travel in the same direction if it has requests in that direction.
-G (((lift.mode = going_up) & req_above_posn) -> X (lift.mode = going_up)) &
-G (((lift.mode = going_dn) & req_below_posn) -> X (lift.mode = going_dn)) &
+  -- Only applicable to the multi-lift part
 
--- 5: When there are no pending requests in the direction that it has been travelling, a lift can change direction to service another request in the opposite direction.
-G ((lift.mode = going_up & lift.position = 1 & !req_above1) -> F (lift.mode = going_dn)) & -- maybe "next" instead of "eventually"
-G ((lift.mode = going_up & lift.position = 2 & !req_above2) -> F (lift.mode = going_dn)) &
-G ((lift.mode = going_up & lift.position = 3) -> F (lift.mode = going_dn)) &
 
-G ((lift.mode = going_dn & lift.position = 2 & !req_below2) -> F (lift.mode = going_up)) &
-G ((lift.mode = going_dn & lift.position = 1 & !req_below1) -> F (lift.mode = going_up)) &
-G ((lift.mode = going_dn & lift.position = 0) -> F (lift.mode = going_up)) &
+  -- 4: A lift will continue to travel in the same direction if it has requests in that direction.
+  G (((lift.mode = going_up) & req_above_posn) -> X (lift.mode = going_up)) &
+  G (((lift.mode = going_dn) & req_below_posn) -> X (lift.mode = going_dn)) &
 
--- 6: The lift stops when there are no pending requests.
-G (!(req0 | req1 | req2 | req3) -> !lift.moving)
+  -- 5: When there are no pending requests in the direction that it has been travelling, a lift can change direction to service another request in the opposite direction.
+  G ((lift.mode = going_up & lift.position = 1 & !req_above1) -> F (lift.mode = going_dn)) & -- maybe "next" instead of "eventually"
+  G ((lift.mode = going_up & lift.position = 2 & !req_above2) -> F (lift.mode = going_dn)) &
+  G ((lift.mode = going_up & lift.position = 3) -> F (lift.mode = going_dn)) &
 
--- 7: The controller never commands the lift to go up and go down simultaneously.
-G (lift.mode = going_up -> !(lift.mode = going_down))
-G (lift.mode = going_down -> !(lift.mode = going_up))
+  G ((lift.mode = going_dn & lift.position = 2 & !req_below2) -> F (lift.mode = going_up)) &
+  G ((lift.mode = going_dn & lift.position = 1 & !req_below1) -> F (lift.mode = going_up)) &
+  G ((lift.mode = going_dn & lift.position = 0) -> F (lift.mode = going_up)) &
 
--- 8: Whenever a lift is stopped at floor 0 and the floor buttons in the lift for floors 1 and 2 are active (pressed), the lift will stop at floor 1 before stooping at floor 2.
-LTLSPEC (G ((!lift.moving & lift.position = 0 & (up_button1 | dn_button1) & (up_button2 | dn_button2)) ->  X ((!lift.moving -> lift.position in {0, 3}) U ((!lift.moving & position = 1) & X (!lift.moving -> lift.position in {0, 1, 3}) U (!lift.moving & lift.position = 2) ))))
+  -- 6: The lift stops when there are no pending requests.
+  G (!(req0 | req1 | req2 | req3) -> !lift.moving) &
 
---9: Whenever the lift is stopped at floor 0 and the down buttons for floors 1 and 2 are active, the lift will stop first at floor 2 and second at floor 1.
-G ((!lift.moving & lift.position = 0 & dn_button1.active & dn_button2.active) ->
-  X ((!lift.moving -> lift.position = 1) U (
-    (!lift.moving & lift.position = 2) & X (
-      (!lift.moving -> lift.position = 2) U (!lift.moving & lift.position = 1)
+  -- 7: The controller never commands the lift to go up and go down simultaneously.
+  G (lift.mode = going_up -> !(lift.mode = going_down)) &
+  G (lift.mode = going_down -> !(lift.mode = going_up)) &
+
+  -- 8: Whenever a lift is stopped at floor 0 and the floor buttons in the lift for floors 1 and 2 are active (pressed), the lift will stop at floor 1 before stooping at floor 2.
+  G ((!lift.moving & lift.position = 0 & (up_button1.active | dn_button1.active) & (up_button2.active | dn_button2.active)) ->  
+    X ((!lift.moving -> lift.position in {0, 3}) U (
+      (!lift.moving & lift.position = 1) & X (
+        (!lift.moving -> lift.position in {0, 1, 3}) U (!lift.moving & lift.position = 2)
+      )
     )
   )
-)
 
--- 10: If none of the up, down or floor buttons for floor 2 is ever active, the lift never stops at floor 2.
+  --9: Whenever the lift is stopped at floor 0 and the down buttons for floors 1 and 2 are active, the lift will stop first at floor 2 and second at floor 1.
+  G ((!lift.moving & lift.position = 0 & dn_button1.active & dn_button2.active) ->
+    X ((!lift.moving -> lift.position = 1) U (
+      (!lift.moving & lift.position = 2) & X (
+        (!lift.moving -> lift.position = 2) U (!lift.moving & lift.position = 1)
+      )
+    )
+  )
+
+  -- 10: If none of the up, down or floor buttons for floor 2 is ever active, the lift never stops at floor 2.
 G ((!req2) -> !(lift.position = 2 & !lift.moving))
+)
