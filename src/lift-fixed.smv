@@ -215,6 +215,7 @@ G ((req_below3) -> F (lift.position = 3 & !lift.moving))
 
 -- 3: (When there are no other requests from inside the lifts), only one lift is used to service a given floor request, but not both.
 
+
 -- Only applicable to the multi-lift part
 
 
@@ -231,7 +232,7 @@ G ((lift.mode = going_down & lift.position = 1 & !(req0)) -> F (lift.mode = goin
 G ((lift.mode = going_down & lift.position = 2) -> F (lift.mode = going_up))
 
 -- 6: The lift stops when there are no pending requests.
-
+G (!(req0 | req1 | req2 | req3) -> (lift.mode = idle))
 
 -- 7: The controller never commands the lift to go up and go down simultaneously.
 
