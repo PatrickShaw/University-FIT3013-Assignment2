@@ -192,30 +192,30 @@ MODULE main
 -- Specify your LTL properties here, see Section 2.5 of the 
 -- assignment specification for the requirements.
 --==========================================================================
-
+LTLSPEC (
 -- 0: Multiple requests can be made from within a single lift.
-F (floor_button0.active & floor_button1.active)
-F (floor_button0.active & floor_button2.active)
-F (floor_button0.active & floor_button3.active)
-F (floor_button1.active & floor_button2.active)
-F (floor_button1.active & floor_button3.active)
-F (floor_button2.active & floor_button3.active)
-F (floor_button0.active & floor_button1.active & floor_button2.active)
-F (floor_button0.active & floor_button2.active & floor_button3.active)
-F (floor_button1.active & floor_button2.active & floor_button3.active)
+F (floor_button0.active & floor_button1.active) &
+F (floor_button0.active & floor_button2.active) &
+F (floor_button0.active & floor_button3.active) &
+F (floor_button1.active & floor_button2.active) &
+F (floor_button1.active & floor_button3.active) &
+F (floor_button2.active & floor_button3.active) &
+F (floor_button0.active & floor_button1.active & floor_button2.active) &
+F (floor_button0.active & floor_button2.active & floor_button3.active) &
+F (floor_button1.active & floor_button2.active & floor_button3.active) &
 
 -- 1: A request made from inside a lift for any other floor will eventually take the lift to that floor
-G ((req0) -> F (lift.position = 0 & !lift.moving))
-G ((req1) -> F (lift.position = 1 & !lift.moving))
-G ((req2) -> F (lift.position = 2 & !lift.moving))
-G ((req3) -> F (lift.position = 3 & !lift.moving))
+G ((req0) -> F (lift.position = 0 & !lift.moving)) &
+G ((req1) -> F (lift.position = 1 & !lift.moving)) &
+G ((req2) -> F (lift.position = 2 & !lift.moving)) &
+G ((req3) -> F (lift.position = 3 & !lift.moving)) &
 
 
 -- 2: A request made from a floor will eventually take the lift to that floor
-LTLSPEC (G ((up_button0) -> F (lift.position = 0 & !lift.moving))))
-LTLSPEC (G ((up_button1 | dn_button1) -> F (lift.position = 1 & !lift.moving)))
-LTLSPEC (G ((up_button2 | dn_button2) -> F (lift.position = 2 & !lift.moving)))
-LTLSPEC (G ((dn_button3) -> F (lift.position = 3 & !lift.moving)))
+G ((up_button0) -> F (lift.position = 0 & !lift.moving)) &
+G ((up_button1 | dn_button1) -> F (lift.position = 1 & !lift.moving)) &
+G ((up_button2 | dn_button2) -> F (lift.position = 2 & !lift.moving)) &
+G ((dn_button3) -> F (lift.position = 3 & !lift.moving)) &
 
 -- 3: (When there are no other requests from inside the lifts), only one lift is used to service a given floor request, but not both.
 
@@ -224,17 +224,17 @@ LTLSPEC (G ((dn_button3) -> F (lift.position = 3 & !lift.moving)))
 
 
 -- 4: A lift will continue to travel in the same direction if it has requests in that direction.
-G ((lift.mode = going_up) & req_above_posn) -> X (lift.mode = going_up))
-G ((lift.mode = going_dn) & req_below_posn) -> X (lift.mode = going_dn))
+G (((lift.mode = going_up) & req_above_posn) -> X (lift.mode = going_up)) &
+G (((lift.mode = going_dn) & req_below_posn) -> X (lift.mode = going_dn)) &
 
 -- 5: When there are no pending requests in the direction that it has been travelling, a lift can change direction to service another request in the opposite direction.
-LTLSPEC (G ((lift.mode = going_up & lift.position = 1 & !req_above1) -> F (lift.mode = going_dn))) -- maybe "next" instead of "eventually"
-LTLSPEC (G ((lift.mode = going_up & lift.position = 2 & !req_above2) -> F (lift.mode = going_dn)))
-LTLSPEC (G ((lift.mode = going_up & lift.position = 3) -> F (lift.mode = going_dn)))
+G ((lift.mode = going_up & lift.position = 1 & !req_above1) -> F (lift.mode = going_dn)) & -- maybe "next" instead of "eventually"
+G ((lift.mode = going_up & lift.position = 2 & !req_above2) -> F (lift.mode = going_dn)) &
+G ((lift.mode = going_up & lift.position = 3) -> F (lift.mode = going_dn)) &
 
-LTLSPEC (G ((lift.mode = going_dn & lift.position = 2 & !req_below2) -> F (lift.mode = going_up)))
-LTLSPEC (G ((lift.mode = going_dn & lift.position = 1 & !req_below1) -> F (lift.mode = going_up)))
-LTLSPEC (G ((lift.mode = going_dn & lift.position = 0) -> F (lift.mode = going_up)))
+G ((lift.mode = going_dn & lift.position = 2 & !req_below2) -> F (lift.mode = going_up)) &
+G ((lift.mode = going_dn & lift.position = 1 & !req_below1) -> F (lift.mode = going_up)) &
+G ((lift.mode = going_dn & lift.position = 0) -> F (lift.mode = going_up)) &
 
 -- 6: The lift stops when there are no pending requests.
 G (!(req0 | req1 | req2 | req3) -> (lift.mode = idle))
