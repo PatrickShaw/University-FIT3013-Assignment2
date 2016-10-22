@@ -193,6 +193,7 @@ MODULE main
 --==========================================================================
 -- Specify your LTL properties here, see Section 2.5 of the 
 -- assignment specification for the requirements.
+-- LTL specifications that have counter-examples: 0, 5, 8, 9, 10
 --==========================================================================
 
 -- 0: Multiple requests can be made from within a single lift.
@@ -207,7 +208,6 @@ LTLSPEC (
   F (floor_button0.active & floor_button2.active & floor_button3.active) &
   F (floor_button1.active & floor_button2.active & floor_button3.active) 
 )
-
 
 -- 1: A request made from inside a lift for any other floor will eventually take the lift to that floor
 LTLSPEC (
