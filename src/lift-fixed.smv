@@ -250,15 +250,22 @@ LTLSPEC (
 )
   -- 8: Whenever a lift is stopped at floor 0 and the floor buttons in the lift for floors 1 and 2 are active (pressed), the lift will stop at floor 1 before stooping at floor 2.
 LTLSPEC (
-  G (
-    (!lift.moving & lift.position = 0 & (up_button1.active | dn_button1.active) & (up_button2.active | dn_button2.active)) -> 
-        (lift.moving & lift.position = 0) U (
-            (lift.moving & lift.position = 1) U (
-                !lift.moving & lift.position = 2
-            )
-          )
+G ( 
+   (stopped_at0 & floor_button1.active & floor_button2.active) -> (
+      (lift.position = 0)  U (
+          (lift.position = 1 & lift.moving)  U (
+              (stopped_at1)  U (
+                  (lift.position = 1 & lift.moving)  U (
+                      (lift.position = 2 & lift.moving)  U ( 
+                          stopped_at2
+                        )
+                    )
+                )
+            ) 
         )
-)
+      )
+    )
+)  
   --9: Whenever the lift is stopped at floor 0 and the down buttons for floors 1 and 2 are active, the lift will stop first at floor 2 and second at floor 1.
  LTLSPEC (
   G (!lift.moving & lift.position = 0 & dn_button1.active & dn_button2.active -> X (
@@ -272,5 +279,5 @@ LTLSPEC (
 )
   -- 10: If none of the up, down or floor buttons for floor 2 is ever active, the lift never stops at floor 2.
 LTLSPEC (
-  G (!req2 -> !F(stopped_at2))
+  G(!req2) -> G(!stopped_at2)
 )
