@@ -267,12 +267,11 @@ G (
     )
 )  
   --9: Whenever the lift is stopped at floor 0 and the down buttons for floors 1 and 2 are active, the lift will stop first at floor 2 and second at floor 1.
- LTLSPEC (
-  G (!lift.moving & lift.position = 0 & dn_button1.active & dn_button2.active -> X (
-      !lift.moving -> lift.position = 1 U (
-        !lift.moving & lift.position = 2 & X (
-          !lift.moving -> lift.position = 2 U (!lift.moving & lift.position = 1)
-        )
+LTLSPEC G (
+  !lift.moving & lift.position = 0 & dn_button1.active & dn_button2.active -> (
+    lift.position = 1 -> lift.moving U (
+      lift.position = 2 & !lift.moving U lift.moving U (
+        lift.position = 1 & !lift.moving
       )
     )
   )
