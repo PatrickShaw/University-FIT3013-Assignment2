@@ -109,8 +109,8 @@ MODULE main
     stopped_at3 := lift1.position = 3 & !lift1.moving;
 
     -- Control signals for lift
-    go_up := mode = going_up & ! (service_up & lift1.moving) & req_above_posn;
-    go_dn := mode = going_dn & ! (service_dn & lift1.moving) & req_below_posn;
+    go_up1 := mode = going_up & ! (service_up & lift1.moving) & req_above_posn;
+    go_dn1 := mode = going_dn & ! (service_dn & lift1.moving) & req_below_posn;
 
     -- Condition for when request from button should be serviced while
     -- lift is moving and going_up.
