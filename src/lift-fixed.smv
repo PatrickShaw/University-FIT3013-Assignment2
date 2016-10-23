@@ -210,10 +210,10 @@ LTLSPEC (
 )
   -- 1: A request made from inside a lift for any other floor will eventually take the lift to that floor
 LTLSPEC (
-  G ((req0) -> F (lift.position = 0)) &
-  G ((req1) -> F (lift.position = 1)) &
-  G ((req2) -> F (lift.position = 2)) &
-  G ((req3) -> F (lift.position = 3)) 
+  G ((req0) -> F (stopped_at0)) &
+  G ((req1) -> F (stopped_at1)) &
+  G ((req2) -> F (stopped_at2)) &
+  G ((req3) -> F (stopped_at3)) 
 )
 
   -- 2: A request made from a floor will eventually take the lift to that floor
