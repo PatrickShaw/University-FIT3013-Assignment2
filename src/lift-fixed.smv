@@ -109,8 +109,8 @@ MODULE main
     stopped_at3 := lift.position = 3 & !lift.moving;
 
     -- Control signals for lift
-    go_up := mode = going_up & ! (service_up & lift.moving);
-    go_dn := mode = going_dn & ! (service_dn & lift.moving);
+    go_up := mode = going_up & ! (service_up & lift.moving) & req_above_posn;
+    go_dn := mode = going_dn & ! (service_dn & lift.moving) & req_below_posn;
 
     -- Condition for when request from button should be serviced while
     -- lift is moving and going_up.
@@ -187,6 +187,18 @@ MODULE main
         mode = going_dn & !req_below_posn : idle;
       esac;
 
+  JUSTICE floor_button0.active & floor_button1.active & floor_button2.active & floor_button3.active;
+  JUSTICE floor_button0.active & floor_button1.active & floor_button2.active & !floor_button3.active;
+  JUSTICE floor_button0.active & floor_button1.active & !floor_button2.active & floor_button3.active;
+  JUSTICE floor_button0.active & floor_button1.active & !floor_button2.active & !floor_button3.active;
+  JUSTICE floor_button0.active & !floor_button1.active & floor_button2.active & floor_button3.active;
+  JUSTICE floor_button0.active & !floor_button1.active & floor_button2.active & !floor_button3.active;
+  JUSTICE floor_button0.active & !floor_button1.active & !floor_button2.active & floor_button3.active;
+  JUSTICE !floor_button0.active & floor_button1.active & floor_button2.active & floor_button3.active;
+  JUSTICE !floor_button0.active & floor_button1.active & floor_button2.active & !floor_button3.active;
+  JUSTICE !floor_button0.active & floor_button1.active & !floor_button2.active & floor_button3.active;
+  JUSTICE !floor_button0.active & !floor_button1.active & floor_button2.active & floor_button3.active;
+
 
 
       
@@ -197,22 +209,17 @@ MODULE main
   -- 0: Multiple requests can be made from within a single lift.
 LTLSPEC (
   G (
-    F (floor_button0.active & floor_button1.active & floor_button2.active & floor_button3.active) &       -- 0000
-    F (floor_button0.active & floor_button1.active & floor_button2.active & !floor_button3.active) &      -- 000!
-    F (floor_button0.active & floor_button1.active & !floor_button2.active & floor_button3.active) &      -- 00!0
-    F (floor_button0.active & floor_button1.active & !floor_button2.active & !floor_button3.active) &     -- 00!!
-    F (floor_button0.active & !floor_button1.active & floor_button2.active & floor_button3.active) &      -- 0!00
-    F (floor_button0.active & !floor_button1.active & floor_button2.active & !floor_button3.active) &     -- 0!0!
-    F (floor_button0.active & !floor_button1.active & !floor_button2.active & floor_button3.active) &     -- 0!!0
-    -- F (floor_button0.active & !floor_button1.active & !floor_button2.active & !floor_button3.active) & -- 0!!!
-    F (!floor_button0.active & floor_button1.active & floor_button2.active & floor_button3.active) &      -- !000
-    F (!floor_button0.active & floor_button1.active & floor_button2.active & !floor_button3.active) &     -- !00!
-    F (!floor_button0.active & floor_button1.active & !floor_button2.active & floor_button3.active) &     -- !0!0
-    -- F (!floor_button0.active & floor_button1.active & !floor_button2.active & !floor_button3.active)   -- !0!!
-    F (!floor_button0.active & !floor_button1.active & floor_button2.active & floor_button3.active)      -- !!00
-    -- F (!floor_button0.active & !floor_button1.active & floor_button2.active & !floor_button3.active) & -- !!0!
-    -- F (!floor_button0.active & !floor_button2.active & !floor_button2.active & floor_button3.aactive)  -- !!!0
-    -- F (!floor_button0.active & !floor_button1.active & !floor_button2.active & !floor_button3.active)  -- !!!!
+    F (floor_button0.active & floor_button1.active & floor_button2.active & floor_button3.active) &
+    F (floor_button0.active & floor_button1.active & floor_button2.active & !floor_button3.active) &
+    F (floor_button0.active & floor_button1.active & !floor_button2.active & floor_button3.active) &
+    F (floor_button0.active & floor_button1.active & !floor_button2.active & !floor_button3.active) &
+    F (floor_button0.active & !floor_button1.active & floor_button2.active & floor_button3.active) &
+    F (floor_button0.active & !floor_button1.active & floor_button2.active & !floor_button3.active) &
+    F (floor_button0.active & !floor_button1.active & !floor_button2.active & floor_button3.active) &
+    F (!floor_button0.active & floor_button1.active & floor_button2.active & floor_button3.active) &
+    F (!floor_button0.active & floor_button1.active & floor_button2.active & !floor_button3.active) &
+    F (!floor_button0.active & floor_button1.active & !floor_button2.active & floor_button3.active) &
+    F (!floor_button0.active & !floor_button1.active & floor_button2.active & floor_button3.active)
   )
 )
   -- 1: A request made from inside a lift for any other floor will eventually take the lift to that floor
