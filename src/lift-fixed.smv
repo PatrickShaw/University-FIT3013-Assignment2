@@ -218,10 +218,10 @@ LTLSPEC (
 
   -- 2: A request made from a floor will eventually take the lift to that floor
 LTLSPEC (
-  G ((up_button0.active) -> F (lift.position = 0 & !lift.moving)) &
-  G ((up_button1.active | dn_button1.active) -> F (lift.position = 1 & !lift.moving)) &
-  G ((up_button2.active | dn_button2.active) -> F (lift.position = 2 & !lift.moving)) &
-  G ((dn_button3.active) -> F (lift.position = 3 & !lift.moving)) 
+  G ((up_button0.active) -> F (stopped_at0)) &
+  G ((up_button1.active | dn_button1.active) -> F (stopped_at1)) &
+  G ((up_button2.active | dn_button2.active) -> F (stopped_at2)) &
+  G ((dn_button3.active) -> F (stopped_at3)) 
 )
   -- 3: (When there are no other requests from inside the lifts), only one lift is used to service a given floor request, but not both.
 
