@@ -109,8 +109,8 @@ MODULE main
     stopped_at3 := lift.position = 3 & !lift.moving;
 
     -- Control signals for lift
-    go_up := mode = going_up & ! (service_up & lift.moving) & req_above_posn;
-    go_dn := mode = going_dn & ! (service_dn & lift.moving) & req_below_posn;
+    go_up := mode = going_up & ! (service_up & lift.moving);
+    go_dn := mode = going_dn & ! (service_dn & lift.moving);
 
     -- Condition for when request from button should be serviced while
     -- lift is moving and going_up.
@@ -209,7 +209,7 @@ LTLSPEC (
     F (!floor_button0.active & floor_button1.active & floor_button2.active & !floor_button3.active) &     -- !00!
     F (!floor_button0.active & floor_button1.active & !floor_button2.active & floor_button3.active) &     -- !0!0
     -- F (!floor_button0.active & floor_button1.active & !floor_button2.active & !floor_button3.active)   -- !0!!
-    F (!floor_button0.active & !floor_button1.active & floor_button2.active & floor_button3.active) &     -- !!00
+    F (!floor_button0.active & !floor_button1.active & floor_button2.active & floor_button3.active)      -- !!00
     -- F (!floor_button0.active & !floor_button1.active & floor_button2.active & !floor_button3.active) & -- !!0!
     -- F (!floor_button0.active & !floor_button2.active & !floor_button2.active & floor_button3.aactive)  -- !!!0
     -- F (!floor_button0.active & !floor_button1.active & !floor_button2.active & !floor_button3.active)  -- !!!!
