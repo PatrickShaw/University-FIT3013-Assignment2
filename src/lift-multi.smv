@@ -167,6 +167,11 @@ MODULE main
     req2_2 := up_button2.active | dn_button2.active | lift2.floor_button2.active;
     req3_2 := dn_button3.active | lift2.floor_button3.active;
 
+    req0 := req0_1 | req0_2;
+    req1 := req1_1 | req1_2;
+    req2 := req2_1 | req2_2;
+    req3 := req3_1 | req3_2;
+
     req_above2_1 := req3_1;
     req_above1_1 := req2_1 | req_above2_1;
     req_above0_1 := req1_1 | req_above1_1;
@@ -280,10 +285,10 @@ MODULE main
 --)
   -- 1: A request made from inside a lift for any other floor will eventually take the lift to that floor
 LTLSPEC (
-  G ((req0_1) -> F (stopped_at0_1)) &
-  G ((req1_1) -> F (stopped_at1_1)) &
-  G ((req2_1) -> F (stopped_at2_1)) &
-  G ((req3_1) -> F (stopped_at3_1)) 
+  G ((req0) -> F (stopped_at0)) &
+  G ((req1) -> F (stopped_at1)) &
+  G ((req2) -> F (stopped_at2)) &
+  G ((req3) -> F (stopped_at3)) 
 )
 
   -- 2: A request made from a floor will eventually take the lift to that floor
