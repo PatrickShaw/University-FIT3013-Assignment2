@@ -168,10 +168,10 @@ MODULE main
     l1_req2 := up_button2.active | dn_button2.active | lift1.floor_button2.active;
     l1_req3 := dn_button3.active | lift1.floor_button3.active;
 
-    l2_req0 := up_button0.active | lift2.floor_button0.active ;
-    l2_req1 := up_button1.active | dn_button1.active | lift2.floor_button1.active;
-    l2_req2 := up_button2.active | dn_button2.active | lift2.floor_button2.active;
-    l2_req3 := dn_button3.active | lift2.floor_button3.active;
+    l2_req0 := up_button0.active;
+    l2_req1 := up_button1.active;
+    l2_req2 := up_button2.active;
+    l2_req3 := dn_button3.active;
 
     req0 := l1_req0 | l2_req0;
     req1 := l1_req1 | l2_req1;
@@ -255,17 +255,17 @@ MODULE main
       l2_mode = going_dn & !l2_req_below_posn : idle;
     esac;
 
-  JUSTICE lift1.floor_button0.active & lift1.floor_button1.active & lift1.floor_button2.active & lift1.floor_button3.active;
-  JUSTICE lift1.floor_button0.active & lift1.floor_button1.active & lift1.floor_button2.active & !lift1.floor_button3.active;
-  JUSTICE lift1.floor_button0.active & lift1.floor_button1.active & !lift1.floor_button2.active & lift1.floor_button3.active;
-  JUSTICE lift1.floor_button0.active & lift1.floor_button1.active & !lift1.floor_button2.active & !lift1.floor_button3.active;
-  JUSTICE lift1.floor_button0.active & !lift1.floor_button1.active & lift1.floor_button2.active & lift1.floor_button3.active;
-  JUSTICE lift1.floor_button0.active & !lift1.floor_button1.active & lift1.floor_button2.active & !lift1.floor_button3.active;
-  JUSTICE lift1.floor_button0.active & !lift1.floor_button1.active & !lift1.floor_button2.active & lift1.floor_button3.active;
-  JUSTICE !lift1.floor_button0.active & lift1.floor_button1.active & lift1.floor_button2.active & lift1.floor_button3.active;
-  JUSTICE !lift1.floor_button0.active & lift1.floor_button1.active & lift1.floor_button2.active & !lift1.floor_button3.active;
-  JUSTICE !lift1.floor_button0.active & lift1.floor_button1.active & !lift1.floor_button2.active & lift1.floor_button3.active;
-  JUSTICE !lift1.floor_button0.active & !lift1.floor_button1.active & lift1.floor_button2.active & lift1.floor_button3.active;
+  --JUSTICE lift1.floor_button0.active & lift1.floor_button1.active & lift1.floor_button2.active & lift1.floor_button3.active;
+  --JUSTICE lift1.floor_button0.active & lift1.floor_button1.active & lift1.floor_button2.active & !lift1.floor_button3.active;
+  --JUSTICE lift1.floor_button0.active & lift1.floor_button1.active & !lift1.floor_button2.active & lift1.floor_button3.active;
+  --JUSTICE lift1.floor_button0.active & lift1.floor_button1.active & !lift1.floor_button2.active & !lift1.floor_button3.active;
+  --JUSTICE lift1.floor_button0.active & !lift1.floor_button1.active & lift1.floor_button2.active & lift1.floor_button3.active;
+  --JUSTICE lift1.floor_button0.active & !lift1.floor_button1.active & lift1.floor_button2.active & !lift1.floor_button3.active;
+  --JUSTICE lift1.floor_button0.active & !lift1.floor_button1.active & !lift1.floor_button2.active & lift1.floor_button3.active;
+  --JUSTICE !lift1.floor_button0.active & lift1.floor_button1.active & lift1.floor_button2.active & lift1.floor_button3.active;
+  --JUSTICE !lift1.floor_button0.active & lift1.floor_button1.active & lift1.floor_button2.active & !lift1.floor_button3.active;
+  --JUSTICE !lift1.floor_button0.active & lift1.floor_button1.active & !lift1.floor_button2.active & lift1.floor_button3.active;
+  --JUSTICE !lift1.floor_button0.active & !lift1.floor_button1.active & lift1.floor_button2.active & lift1.floor_button3.active;
 
 
 
