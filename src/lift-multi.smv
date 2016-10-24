@@ -41,7 +41,7 @@ MODULE button(reset)
     next(active) := 
       case
         active = TRUE : reset ? FALSE : TRUE;
-        active = FALSE : {TRUE, FALSE};
+        active = FALSE : {FALSE, TRUE};
       esac;
 
 --==========================================================================
@@ -61,13 +61,12 @@ MODULE lift_model(go_up, go_dn)
     floor_button3 : button(position = 3 & !moving);
 
   ASSIGN
-
     init(position) := 0;
     next(position) := 
       case
         go_up & position != 3 : position + 1;
         go_dn & position != 0 : position - 1;
-        TRUE                  :position;
+        TRUE                  : position;
       esac;
 
     init(moving) := FALSE;
@@ -94,14 +93,14 @@ MODULE main
     mode2 : {going_up, going_dn, idle};
 
     -- Call lift for going up
-    up_button0 : button(stopped_at0);
-    up_button1 : button(stopped_at1);
-    up_button2 : button(stopped_at2);
+    up_button0 : button((stopped_at0_1 & mode1 = going_up));
+    up_button1 : button((stopped_at1_1 & mode1 = going_up));
+    up_button2 : button((stopped_at2_1 & mode1 = going_up));
 
      -- Call lift for going down
-    dn_button3 : button(stopped_at3);
-    dn_button2 : button(stopped_at2);
-    dn_button1 : button(stopped_at1);
+    dn_button1 : button((stopped_at1_1 & mode1 = going_dn));
+    dn_button2 : button((stopped_at2_1 & mode1 = going_dn));
+    dn_button3 : button((stopped_at3_1 & mode1 = going_dn));
 
   DEFINE
     -- Identifiers for resetting lift 1 buttons
@@ -131,9 +130,13 @@ MODULE main
     go_dn2 := mode2 = going_dn & !(service_dn_2 & lift2.moving) & req_below_posn2;
 
     -- Condition for when request from button should be serviced while lift 1 is moving and going_up.
-    service_up1_1 := lift1.position = 1 & (lift1.floor_button1.active | up_button1.active);
-    service_up2_1 := lift1.position = 2 & (lift1.floor_button2.active | up_button2.active);
-    service_up3_1 := lift1.position = 3 & (lift1.floor_button3.active | dn_button3.active);
+    service_up1_1 := 
+      lift1.position = 1 & (lift1.floor_button1.active | up_button1.active);
+    service_up2_1 := 
+      lift1.position = 2 & (lift1.floor_button2.active | up_button2.active);
+    service_up3_1 := 
+      lift1.position = 3 & (lift1.floor_button3.active | dn_button3.active);
+    
     service_up_1 := service_up1_1 | service_up2_1 | service_up3_1;
 
     -- Condition for when request from button should be serviced while lift 2 is moving and going_up.
@@ -153,25 +156,33 @@ MODULE main
     service_dn1_2 := lift2.position = 1 & (lift2.floor_button1.active | dn_button1.active);
     service_dn0_2 := lift2.position = 0 & (lift2.floor_button0.active | up_button0.active);
     service_dn_2 := service_dn2_2 | service_dn1_2 | service_dn0_2;
-
-
     -- Build-up various combinations of button requests for service
+    -- Lift 1 has a person in it who wants to get to floor 1? If so then go to floor 1 eventually
+    -- Lift 1 going up toward floor 1 & lift 2 isn't? Go floor 1 eventually
+    -- Lift 1 going up toward floor 1 and lift 2 is as well, but lift 1 is closer? Go floor 1 eventually
+    -- Lift 1 going dn toward floor 1 & lift 2 is going down but lift is closer? Go floor 1 eventually 
+    -- Lift 1 is on the same floor and same direction as lift 2? Go to floor 
 
-    req0_1 := up_button0.active | lift1.floor_button0.active;
+    req0_1 := up_button0.active | lift1.floor_button0.active ;
     req1_1 := up_button1.active | dn_button1.active | lift1.floor_button1.active;
     req2_1 := up_button2.active | dn_button2.active | lift1.floor_button2.active;
     req3_1 := dn_button3.active | lift1.floor_button3.active;
 
-    req0_2 := up_button0.active | lift2.floor_button0.active;
-    req1_2 := up_button1.active | dn_button1.active | lift2.floor_button1.active;
-    req2_2 := up_button2.active | dn_button2.active | lift2.floor_button2.active;
-    req3_2 := dn_button3.active | lift2.floor_button3.active;
+    req0_2 := lift2.floor_button0.active;
+    req1_2 := lift2.floor_button1.active;
+    req2_2 := lift2.floor_button2.active;
+    req3_2 := lift2.floor_button3.active;
+
+    req0 := req0_1 | req0_2;
+    req1 := req1_1 | req1_2;
+    req2 := req2_1 | req2_2;
+    req3 := req3_1 | req3_2;
 
     req_above2_1 := req3_1;
     req_above1_1 := req2_1 | req_above2_1;
     req_above0_1 := req1_1 | req_above1_1;
 
-    req_above2_2 := req3_2;
+    req_above2_2 := req3_2; 
     req_above1_2 := req2_2 | req_above2_2;
     req_above0_2 := req1_2 | req_above1_2;
 
@@ -216,7 +227,8 @@ MODULE main
     -- The transitions for the lift 1 controller state machine
     init(mode1) := idle;
     next(mode1) := case
-      mode1 = idle & req_above_posn1 & req_below_posn1 : {going_up, going_dn};
+      mode1 = idle & req_above_posn1
+                   & req_below_posn1 : {going_up, going_dn};
       mode1 = idle & req_above_posn1 : going_up;
       mode1 = idle & req_below_posn1 : going_dn;
       mode1 = idle : idle;
@@ -278,64 +290,62 @@ MODULE main
 --    F (!lift1.floor_button0.active & !lift1.floor_button1.active & lift1.floor_button2.active & lift1.floor_button3.active)
 --  )
 --)
-  -- 1: A request made from inside a lift for any other floor will eventually take the lift to that floor
-LTLSPEC (
-  G ((req0_1) -> F (stopped_at0_1)) &
-  G ((req1_1) -> F (stopped_at1_1)) &
-  G ((req2_1) -> F (stopped_at2_1)) &
-  G ((req3_1) -> F (stopped_at3_1)) 
-)
 
+   -- 1: A request made from inside a lift for any other floor will eventually take the lift to that floor
+LTLSPEC (
+  G ((lift1.floor_button0.active) -> F (stopped_at0_1)) &
+  G ((lift1.floor_button1.active) -> F (stopped_at1_1)) &
+  G ((lift1.floor_button2.active) -> F (stopped_at2_1)) &
+  G ((lift1.floor_button3.active) -> F (stopped_at3_1)) 
+) 
   -- 2: A request made from a floor will eventually take the lift to that floor
 LTLSPEC (
   G ((up_button0.active) -> F (stopped_at0)) &
   G ((up_button1.active | dn_button1.active) -> F (stopped_at1)) &
   G ((up_button2.active | dn_button2.active) -> F (stopped_at2)) &
-  G ((dn_button3.active) -> F (stopped_at3)) 
+  G ((dn_button3.active) -> F (stopped_at3))
 )
   -- 3: (When there are no other requests from inside the lifts), only one lift is used to service a given floor request, but not both.
 
-
   -- Only applicable to the multi-lift part
-
 
   -- 4: A lift will continue to travel in the same direction if it has requests in that direction.
 LTLSPEC (
   G (((mode1 = going_up) & req_above_posn1) -> X (mode1 = going_up)) &
-  G (((mode1 = going_dn) & req_below_posn1) -> X (mode1 = going_dn)) 
+  G (((mode1 = going_dn) & req_below_posn1) -> X (mode1 = going_dn))
 )
   -- 5: When there are no pending requests in the direction that it has been travelling, a lift can change direction to service another request in the opposite direction.
 LTLSPEC (
-  G (!req_above_posn1 & req_below_posn1 & mode1 = going_up -> F (mode1 = going_dn)) & 
+  G (!req_above_posn1 & req_below_posn1 & mode1 = going_up -> F (mode1 = going_dn)) &
   G (!req_below_posn1 & req_above_posn1 & mode1 = going_dn -> F (mode1 = going_up))
 )
   -- 6: The lift stops when there are no pending requests.
  LTLSPEC (
-  G (!(req0_1 | req1_1 | req2_1 | req3_1) -> !lift1.moving) 
+  G (!(req0_1 | req1_1 | req2_1 | req3_1) -> !lift1.moving)
 )
   -- 7: The controller never commands the lift to go up and go down simultaneously.
 LTLSPEC (
   G (mode1 = going_up -> !(mode1 = going_dn)) &
-  G (mode1 = going_dn -> !(mode1 = going_up)) 
+  G (mode1 = going_dn -> !(mode1 = going_up))
 )
   -- 8: Whenever a lift is stopped at floor 0 and the floor buttons in the lift for floors 1 and 2 are active (pressed), the lift will stop at floor 1 before stooping at floor 2.
 LTLSPEC (
-G ( 
+G (
    (stopped_at0_1 & lift1.floor_button1.active & lift1.floor_button2.active) -> (
       (lift1.position = 0)  U (
           (lift1.position = 1 & lift1.moving)  U (
               (stopped_at1_1)  U (
                   (lift1.position = 1 & lift1.moving)  U (
-                      (lift1.position = 2 & lift1.moving)  U ( 
+                      (lift1.position = 2 & lift1.moving)  U (
                           stopped_at2_1
                         )
                     )
                 )
-            ) 
+            )
         )
       )
     )
-)  
+)
   --9: Whenever the lift is stopped at floor 0 and the down buttons for floors 1 and 2 are active, the lift will stop first at floor 2 and second at floor 1.
 LTLSPEC G (
   !lift1.moving & lift1.position = 0 & dn_button1.active & dn_button2.active -> (
@@ -348,5 +358,5 @@ LTLSPEC G (
 )
   -- 10: If none of the up, down or floor buttons for floor 2 is ever active, the lift never stops at floor 2.
 LTLSPEC (
-  G(!req2_1) -> G(!stopped_at2_1)
+  G(!req2) -> G(!stopped_at2)
 )
