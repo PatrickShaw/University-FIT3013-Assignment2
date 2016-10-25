@@ -127,7 +127,7 @@ MODULE main
 
     -- Control signals for lift 2
     l2_go_up := l2_mode = going_up & !(l2_service_up & lift2.moving) & l2_req_above_posn;
-    l2_go_dn := l2_mode = going_dn & !(service_dn_2 & lift2.moving) & l2_req_below_posn;
+    l2_go_dn := l2_mode = going_dn & !(l2_service_dn & lift2.moving) & l2_req_below_posn;
 
     -- Condition for when request from button should be serviced while lift 1 is moving and going_up.
     l1_service_up1 := 
@@ -155,7 +155,7 @@ MODULE main
     l2_service_dn2 := lift2.position = 2 & (lift2.floor_button2.active | dn_button2.active);
     l2_service_dn1 := lift2.position = 1 & (lift2.floor_button1.active | dn_button1.active);
     l2_service_dn0 := lift2.position = 0 & (lift2.floor_button0.active | up_button0.active);
-    service_dn_2 := l2_service_dn2 | l2_service_dn1 | l2_service_dn0;
+    l2_service_dn := l2_service_dn2 | l2_service_dn1 | l2_service_dn0;
     -- Build-up various combinations of button requests for service
     -- Lift 1 has a person in it who wants to get to floor 1? If so then go to floor 1 eventually
     -- Lift 1 going up toward floor 1 & lift 2 isn't? Go floor 1 eventually
@@ -266,6 +266,7 @@ MODULE main
   JUSTICE !lift1.floor_button0.active & lift1.floor_button1.active & lift1.floor_button2.active & !lift1.floor_button3.active;
   JUSTICE !lift1.floor_button0.active & lift1.floor_button1.active & !lift1.floor_button2.active & lift1.floor_button3.active;
   JUSTICE !lift1.floor_button0.active & !lift1.floor_button1.active & lift1.floor_button2.active & lift1.floor_button3.active;
+  JUSTICE !lift1.floor_button0.active & !lift1.floor_button1.active & !lift1.floor_button2.active & !lift1.floor_button3.active;
 
 
 
