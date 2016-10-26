@@ -322,6 +322,58 @@ MODULE main
 -- Please note that the LTLSPECs for lift1 and lift2 have been seperated in most cases, mainly so that NuSMV will finish running in a feasible time.
 --==========================================================================
   -- 0: Multiple requests can be made from within a single lift.
+  LTLSPEC (
+    G (
+      F (lift1.floor_button0.active & lift1.floor_button1.active & lift1.floor_button2.active & lift1.floor_button3.active) &
+      F (lift1.floor_button0.active & lift1.floor_button1.active & lift1.floor_button2.active & !lift1.floor_button3.active) &
+      F (lift1.floor_button0.active & lift1.floor_button1.active & !lift1.floor_button2.active & lift1.floor_button3.active) &
+      F (lift1.floor_button0.active & lift1.floor_button1.active & !lift1.floor_button2.active & !lift1.floor_button3.active) &
+      F (lift1.floor_button0.active & !lift1.floor_button1.active & lift1.floor_button2.active & lift1.floor_button3.active) &
+      F (lift1.floor_button0.active & !lift1.floor_button1.active & lift1.floor_button2.active & !lift1.floor_button3.active) &
+      F (lift1.floor_button0.active & !lift1.floor_button1.active & !lift1.floor_button2.active & lift1.floor_button3.active) &
+      F (!lift1.floor_button0.active & lift1.floor_button1.active & lift1.floor_button2.active & lift1.floor_button3.active) &
+      F (!lift1.floor_button0.active & lift1.floor_button1.active & lift1.floor_button2.active & !lift1.floor_button3.active) &
+      F (!lift1.floor_button0.active & lift1.floor_button1.active & !lift1.floor_button2.active & lift1.floor_button3.active) &
+      F (!lift1.floor_button0.active & !lift1.floor_button1.active & lift1.floor_button2.active & lift1.floor_button3.active)
+    )
+  )
+  LTLSPEC (
+    G (
+      F (lift2.floor_button0.active & lift2.floor_button1.active & lift2.floor_button2.active & lift2.floor_button3.active) &
+      F (lift2.floor_button0.active & lift2.floor_button1.active & lift2.floor_button2.active & !lift2.floor_button3.active) &
+      F (lift2.floor_button0.active & lift2.floor_button1.active & !lift2.floor_button2.active & lift2.floor_button3.active) &
+      F (lift2.floor_button0.active & lift2.floor_button1.active & !lift2.floor_button2.active & !lift2.floor_button3.active) &
+      F (lift2.floor_button0.active & !lift2.floor_button1.active & lift2.floor_button2.active & lift2.floor_button3.active) &
+      F (lift2.floor_button0.active & !lift2.floor_button1.active & lift2.floor_button2.active & !lift2.floor_button3.active) &
+      F (lift2.floor_button0.active & !lift2.floor_button1.active & !lift2.floor_button2.active & lift2.floor_button3.active) &
+      F (!lift2.floor_button0.active & lift2.floor_button1.active & lift2.floor_button2.active & lift2.floor_button3.active) &
+      F (!lift2.floor_button0.active & lift2.floor_button1.active & lift2.floor_button2.active & !lift2.floor_button3.active) &
+      F (!lift2.floor_button0.active & lift2.floor_button1.active & !lift2.floor_button2.active & lift2.floor_button3.active) &
+      F (!lift2.floor_button0.active & !lift2.floor_button1.active & lift2.floor_button2.active & lift2.floor_button3.active)
+    )
+  )
+
+  -- 1: A request made from inside a lift for any other floor will eventually take the lift to that floor
+  LTLSPEC (
+    G ((lift1.floor_button0.active) -> F (l1_stopped_at0)) &
+    G ((lift1.floor_button1.active) -> F (l1_stopped_at1)) &
+    G ((lift1.floor_button2.active) -> F (l1_stopped_at2)) &
+    G ((lift1.floor_button3.active) -> F (l1_stopped_at3)) 
+  ) 
+  LTLSPEC (
+    G ((lift2.floor_button0.active) -> F (l2_stopped_at0)) &
+    G ((lift2.floor_button1.active) -> F (l2_stopped_at1)) &
+    G ((lift2.floor_button2.active) -> F (l2_stopped_at2)) &
+    G ((lift2.floor_button3.active) -> F (l2_stopped_at3)) 
+  ) 
+  -- 2: A request made from a floor will eventually take the lift to that floor
+  -- Note that it doesn't have to be any particular lift. Just one of the lifts needs to stop on that floor.
+  LTLSPEC (
+    G ((up_button0.active) -> F (stopped_at0)) &
+    G ((up_button1.active | dn_button1.active) -> F (stopped_at1)) &
+    G ((up_button2.active | dn_button2.active) -> F (stopped_at2)) &
+    G ((dn_button3.active) -> F (stopped_at3))
+  )
   -- 3: (When there are no other requests from inside the lifts), only one lift is used to service a given floor request, but not both.
 
   -- Only applicable to the multi-lift part
@@ -457,3 +509,29 @@ MODULE main
   LTLSPEC (
     G(!req2) -> G(!stopped_at2)
   )
+    --==========================================================================
+    -- Extra LTLSPECS
+    -- Please note that additional LTLSPECs have already been rewritten and added to acount for the second lift.
+    --==========================================================================
+    -- 11: The two lifts must not be moving in the same direction unless they are servicing an internal lift request.
+    -- This is LTLSPEC exists to ensure that the algorithm specified in the report is functioning correctly.
+    LTLSPEC (
+      -- If they're both moving in the same direction (not idle) then at least 1 of the lifts must have a floor request
+      G(
+        (lift1.moving & lift2.moving & l1_mode = l2_mode & l1_mode != idle)-> (
+          lift1.floor_button0.active | lift1.floor_button1.active | lift1.floor_button2.active | lift1.floor_button3.active | 
+          lift2.floor_button0.active | lift2.floor_button1.active | lift2.floor_button2.active | lift2.floor_button3.active
+        )
+      )
+    )
+    -- 12: The two lifts must not be assigned to go in same direction at the same time.
+    -- This would break the rules of the algorithm specified throughout the Assignment 2 report.
+    -- Reason: If the algorithm assigned the same direction in the same transition, the lifts may compete with one another
+    LTLSPEC (
+      G(
+        (l1_go_up -> !l2_go_up) & 
+        (l1_go_dn -> !l2_go_dn) &
+        (l2_go_up -> !l1_go_up) & 
+        (l2_go_dn -> !l1_go_dn)  
+      )
+    )
