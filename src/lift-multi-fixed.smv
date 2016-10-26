@@ -221,11 +221,6 @@ MODULE main
     req_dn := dn_button1.active | dn_button2.active | dn_button3.active;
     req_up := up_button0.active | up_button1.active | up_button2.active;
 
-    l2_above_lift1 := lift2.position > lift1.position;
-    l1_above_lift2 := lift1.position > lift2.position;
-    l2_below_lift1 := lift2.position < lift1.position;
-    l1_below_lift2 := lift1.position < lift2.position;
-
     l2_req_floor_below1 := lift2.floor_button0.active;
     l2_req_floor_below2 := lift2.floor_button1.active | l2_req_floor_below1;
     l2_req_floor_below3 := lift2.floor_button2.active | l2_req_floor_below2;
@@ -519,8 +514,8 @@ MODULE main
       -- If they're both moving in the same direction (not idle) then at least 1 of the lifts must have a floor request
       G(
         (lift1.moving & lift2.moving & l1_mode = l2_mode & l1_mode != idle)-> (
-          lift1.floor_button0.active | lift1.floor_button1.active | lift1.floor_button2.active | lift1.floor_button3.active | 
-          lift2.floor_button0.active | lift2.floor_button1.active | lift2.floor_button2.active | lift2.floor_button3.active
+          (lift1.floor_button0.active | lift1.floor_button1.active | lift1.floor_button2.active | lift1.floor_button3.active) & 
+          (lift2.floor_button0.active | lift2.floor_button1.active | lift2.floor_button2.active | lift2.floor_button3.active)
         )
       )
     )
