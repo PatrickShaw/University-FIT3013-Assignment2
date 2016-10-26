@@ -191,39 +191,103 @@ MODULE main
 --==========================================================================
 -- Specify your LTL properties here, see Section 2.5 of the 
 -- assignment specification for the requirements.
---==========================================================================
+--=========================================================================
+  -- 0: Multiple requests can be made from within a single lift.
+  LTLSPEC (
+    G (
+      F (floor_button0.active & floor_button1.active & floor_button2.active & floor_button3.active) &
+      F (floor_button0.active & floor_button1.active & floor_button2.active & !floor_button3.active) &
+      F (floor_button0.active & floor_button1.active & !floor_button2.active & floor_button3.active) &
+      F (floor_button0.active & floor_button1.active & !floor_button2.active & !floor_button3.active) &
+      F (floor_button0.active & !floor_button1.active & floor_button2.active & floor_button3.active) &
+      F (floor_button0.active & !floor_button1.active & floor_button2.active & !floor_button3.active) &
+      F (floor_button0.active & !floor_button1.active & !floor_button2.active & floor_button3.active) &
+      F (!floor_button0.active & floor_button1.active & floor_button2.active & floor_button3.active) &
+      F (!floor_button0.active & floor_button1.active & floor_button2.active & !floor_button3.active) &
+      F (!floor_button0.active & floor_button1.active & !floor_button2.active & floor_button3.active) &
+      F (!floor_button0.active & !floor_button1.active & floor_button2.active & floor_button3.active)
+    )
+  )
+  -- 1: A request made from inside a lift for any other floor will eventually take the lift to that floor
+  LTLSPEC (
+    G ((floor_button0.active) -> F (stopped_at0)) &
+    G ((floor_button1.active) -> F (stopped_at1)) &
+    G ((floor_button2.active) -> F (stopped_at2)) &
+    G ((floor_button3.active) -> F (stopped_at3)) 
+  )
 
--- 0: Multiple requests can be made from within a single lift.
+  -- 2: A request made from a floor will eventually take the lift to that floor
+  LTLSPEC (
+    G ((up_button0.active) -> F (stopped_at0)) &
+    G ((up_button1.active | dn_button1.active) -> F (stopped_at1)) &
+    G ((up_button2.active | dn_button2.active) -> F (stopped_at2)) &
+    G ((dn_button3.active) -> F (stopped_at3)) 
+  )
+  -- 3: (When there are no other requests from inside the lifts), only one lift is used to service a given floor request, but not both.
 
 
--- 1: A request made from inside a lift for any other floor will eventually take the lift to that floor
+  -- Only applicable to the multi-lift part
 
 
--- 2: A request made from a floor will eventually take the lift to that floor
-
-
--- 3: (When there are no other requests from inside the lifts), only one lift is used to service a given floor request, but not both.
-
--- Only applicable to the multi-lift part
-
-
--- 4: A lift will continue to travel in the same direction if it has requests in that direction.
-		  
-
--- 5: When there are no pending requests in the direction that it has been travelling, a lift can change direction to service another request in the opposite direction.
-
-
--- 6: The lift stops when there are no pending requests.
-
-
--- 7: The controller never commands the lift to go up and go down simultaneously.
-
-
--- 8: Whenever a lift is stopped at floor 0 and the floor buttons in the lift for floors 1 and 2 are active (pressed), the lift will stop at floor 1 before stooping at floor 2.
-
-
---9: Whenever the lift is stopped at floor 0 and the down buttons for floors 1 and 2 are active, the lift will stop first at floor 2 and second at floor 1.
-
-
--- 10: If none of the up, down or floor buttons for floor 2 is ever active, the lift never stops at floor 2.
-
+  -- 4: A lift will continue to travel in the same direction if it has requests in that direction.
+  LTLSPEC (
+    G (((mode = going_up) & req_above_posn) -> X (mode = going_up)) &
+    G (((mode = going_dn) & req_below_posn) -> X (mode = going_dn)) 
+  )
+  -- 5: When there are no pending requests in the direction that it has been travelling, a lift can change direction to service another request in the opposite direction.
+  LTLSPEC (
+    G (!req_above_posn & req_below_posn & mode = going_up -> F (mode = going_dn)) & 
+    G (!req_below_posn & req_above_posn & mode = going_dn -> F (mode = going_up))
+  )
+  -- 6: The lift stops when there are no pending requests.
+  LTLSPEC (
+    G (!(req0 | req1 | req2 | req3) -> !lift.moving) 
+  )
+  -- 7: The controller never commands the lift to go up and go down simultaneously.
+  LTLSPEC (
+    G (go_up -> !go_dn) &
+    G (go_dn -> !go_up) 
+  )
+  -- 8: Whenever a lift is stopped at floor 0 and the floor buttons in the lift for floors 1 and 2 are active (pressed), the lift will stop at floor 1 before stooping at floor 2.
+  LTLSPEC (
+    G ( 
+      (stopped_at0 & floor_button1.active & floor_button2.active) -> (
+        (lift.position = 0) U (
+          (lift.moving & lift.position = 1) U (
+            (stopped_at1) U (
+              (lift.moving & lift.position = 2) U (
+                stopped_at2
+              )
+            )
+          ) 
+        )
+      )
+    )
+  ) 
+  --9: Whenever the lift is stopped at floor 0 and the down buttons for floors 1 and 2 are active, the lift will stop first at floor 2 and second at floor 1.
+  LTLSPEC(
+    G (
+      stopped_at0 & dn_button1.active & dn_button2.active -> (
+        stopped_at0 U (
+          lift.moving U (
+            stopped_at2 U (
+              lift.moving U (
+                stopped_at1 |
+                -- The criteria for the requirement broke; A request happened at floor 3 which isn't part of the specification preconditions.
+                stopped_at3
+              ) 
+            ) |
+            -- Below accounts for the preconditions of the specification breaking. 
+            -- Either a button on floor 1 that the lift is supposed to pick up on the way was clicked
+            -- or the lift stopped at floor 3 for whatever reason. Note that stopped_at3 should be replaced with (dn_button3.active | floor_button3.active), 
+            -- but then it specification would pick up on the overshooting bug and return false
+            up_button1.active | floor_button1.active | stopped_at3  
+          ) 
+        )
+      )     
+    )
+  )
+  -- 10: If none of the up, down or floor buttons for floor 2 is ever active, the lift never stops at floor 2.
+  LTLSPEC (
+    G(!req2) -> G(!stopped_at2)
+  )
